@@ -5,4 +5,4 @@ ADD files /app
 WORKDIR /app
 RUN pip3 install -r requirements.txt
 
-ENTRYPOINT ["/usr/bin/python3", "/app/alertsgen.py", "$TOKEN"]
+ENTRYPOINT ["/usr/bin/python3", "/app/alertsgen.py"]

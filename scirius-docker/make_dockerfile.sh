@@ -1,5 +1,5 @@
 #!/bin/sh
-SCIRIUS_DIR="$HOME/src/uninett/scirius-autosetup/scirius"
+[ -z "$SCIRIUS_DIR" ] && SCIRIUS_DIR="scirius"
 
 echo "=> Copying scirius from $SCIRIUS_DIR into current directory"
 rsync -ra "$SCIRIUS_DIR" . || exit "$?"
@@ -51,6 +51,11 @@ docker build -t scirius:es . || exit "$?"
 cat > Dockerfile <<EOF
 FROM scirius:base
 ADD settings_alertsgen.py /app/scirius/scirius/settings.py
+# create_default_token is the command used to generate a predictable
+# token: d292d0af257f5887c1404f73ad50bd36d27ca3f1
+# used by alertsgen
+ADD create_default_token.py /app/scirius/rules/management/commands/create_default_token.py
+RUN python manage.py create_default_token
 ENTRYPOINT ["python", "manage.py", "runserver", "0.0.0.0:8007"]
 EOF
 

@@ -1,17 +1,11 @@
 # Makefile for docker image
 
-# up takes optional arguments
-ifeq (up,$(firstword $(MAKECMDGOALS)))
-	UP_ARGS := $(wordlist 2,$(words $(MAKECMDGOALS)),$(MAKECMDGOALS))
-	$(eval $(UP_ARGS):;@:)
-endif
-
 .PHONY: help sysctls up build
 
 help:
 	@ echo "Available commands"
 	@ echo "  build              build the docker containers"
-	@ echo "  up [args...]       docker-compose up"
+	@ echo "  up                 docker-compose up"
 	@ echo "  setup-scirius      install scirius to scirius/docker using scirius-autosetup"
 	@ echo "  sysctls            set sysctl settings (needed for elasticsearch)"
 

@@ -549,7 +549,7 @@ def get(dict_, keys):
 
 def main(args, name='alerts_gen.py'):
     print(f'[{arrow.now()}] Starting alertsgen', flush=True)
-    token = args[0]
+    token = 'd292d0af257f5887c1404f73ad50bd36d27ca3f1' # see create_default_token.py
     print(f'[{arrow.now()}] Using token {token}', flush=True)
 
     rules_path = 'rules/scirius.rules'
