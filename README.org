@@ -1,4 +1,4 @@
-#+TITLE: Scirius Humio Elasticsearch (SHE) Docker setup
+#+TITLE: Humio Elasticsearch Logstash Scirius Alertsgen (HELSA) Docker setup
 
 This is a docker based setup which creates and runs one Scirius instance which
 uses Humio, one which uses Elasticsearch and one used to generate alert data
