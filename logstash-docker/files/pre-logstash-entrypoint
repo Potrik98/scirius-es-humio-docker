@@ -1,0 +1,56 @@
+#!/bin/bash
+# $1 - host
+# $2 - repo name
+# $3 - repo description
+
+humio_graphql_query() {
+    # $1 - host
+    # $2 - data
+
+    curl -L -s \
+        -X POST \
+        -H "Content-Type: application/json" \
+        --data "${2}" \
+        "${1}/graphql"
+}
+
+humio_create_repo() {
+    # $1 - host
+    # $2 - repo-name
+    # $3 - repo-descr
+    local host="$1"
+    local repo_name="\\\"$2\\\""
+    local repo_descr="\\\"$3\\\""
+
+    graphql_query="{\"query\": \"mutation {\n createRepository(name:${repo_name}, description:${repo_descr}) {\n repository { \n id\n name\n ingestTokens {\n name \n token \n} \n}\n} \n}\"}"
+    json_data="$(jq -n "${graphql_query}")"
+
+    echo "$json_data"
+    response="$(humio_graphql_query "$host" "$json_data")"
+    echo "$response"
+}
+
+#wait-for-it "$1" --
+#curl -s "${1}/api/v1/status" | jq
+humio_host="$1"
+echo "==> Creating repo at $humio_host: name=$2, descr=$3"
+response="$(humio_create_repo "$humio_host" "$2" "$3")"
+
+#repo_name="$(echo "$response" | jq -r .data.createRepository.repository.name)"
+ingest_token="$(echo "$response" | jq -r '.data.createRepository.repository.ingestTokens | .[] | .token')"
+echo "Got ingest token: ${ingest_token}"
+
+# Append output configuration with ingest token and hostname to eve.conf
+(cat "/tmp/eve.conf.orig"; echo "output {
+  elasticsearch{
+    hosts => [\"${humio_host}/api/v1/ingest/elastic-bulk\"]
+    user => \"${ingest_token}\"
+    password => \"notused\"
+   }
+}") > /usr/share/logstash/pipeline/eve.conf
+
+echo "==> Generated eve.conf"
+cat /usr/share/logstash/pipeline/eve.conf
+
+# Continue
+"$4"

@@ -1,0 +1,129 @@
+version: '3.4'
+
+services:
+
+### ELASTICSEARCH
+  es-scirius:
+    image: scirius:es
+    ports:
+      - "8009:8009"
+    networks:
+      - elastic_nw
+    entrypoint:
+      - python
+      - manage.py
+      - runserver
+      - 0.0.0.0:8009
+    cap_add:
+      - NET_ADMIN
+      - SYS_NICE
+      - NET_RAW
+
+  es-elasticsearch:
+    build: ./elasticsearch-docker
+    #network_mode: "host"
+    networks:
+      - elastic_nw
+    ports:
+      - "9200:9200"
+    environment:
+      - node.name=es01
+      - cluster.name=es-docker-cluster
+      - bootstrap.memory_lock=true
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+
+### HUMIO
+  humio-scirius:
+    image: scirius:humio
+    #depends_on: humio-humio
+    ports:
+      - "8008:8008"
+    networks:
+      - humio_nw
+    entrypoint:
+      - python
+      - manage.py
+      - runserver
+      - 0.0.0.0:8008
+    cap_add:
+      - NET_ADMIN
+      - SYS_NICE
+      - NET_RAW
+
+  humio-humio:
+    build: ./humio-docker
+    ports:
+      - "8080:8080"
+    networks:
+      - humio_nw
+
+### LOGSTASH
+  logstash:
+    build: ./logstash-docker
+#    ports:
+#      - "9600:9600"
+    depends_on:
+      - humio-humio
+      - es-elasticsearch
+    networks:
+      - humio_nw
+      - elastic_nw
+      - logstash_nw
+    entrypoint:
+      - /usr/local/bin/wait-for-it
+      - "-s"
+      - "-t"
+      - "0"
+      - "humio-humio:8080"
+      - "--"
+      - /usr/local/bin/pre-logstash-entrypoint
+      - "http://humio-humio:8080"
+      - "testrepo"
+      - "testdescription"
+      - /usr/local/bin/docker-entrypoint
+    volumes:
+      - ./alerts:/var/log/suricata:ro
+    environment:
+      LOG_LEVEL: info
+
+### ALERTSGEN
+  alertsgen:
+    build: ./alertsgen-docker
+    networks:
+      - alertsgen_nw
+      - logstash_nw
+    environment:
+      - SCIRIUS_HOST=http://alertsgen-scirius:8007
+    volumes:
+      - ./alerts:/app/alerts:rw
+    entrypoint:
+      - python3
+      - alertsgen.py
+      - c8b5eb6d4636b2c86b200767a6f758c777c8f0d6
+    depends_on: 
+      - alertsgen-scirius
+    restart: on-failure
+    #  - logstash
+
+  # This docker image is used to get rule data 
+  # used when generating alerts
+  alertsgen-scirius:
+    image: scirius:alertsgen
+    networks:
+      - alertsgen_nw
+    entrypoint:
+      - python
+      - manage.py
+      - runserver
+      - 0.0.0.0:8007
+    environment:
+      LOG_LEVEL: info
+
+networks:
+  humio_nw:
+  elastic_nw:
+  logstash_nw:
+  alertsgen_nw:

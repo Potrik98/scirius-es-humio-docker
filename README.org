@@ -1,0 +1,25 @@
+#+TITLE: Scirius Humio Elasticsearch (SHE) Docker setup
+
+This is a docker based setup which creates and runs one Scirius instance which
+uses Humio, one which uses Elasticsearch and one used to generate alert data
+that is passed to Humio and Elasticsearch through Logstash.
+
+* Usage
+** Requirements
+- docker
+- docker-compose
+- pipenv (for ~make setup-scirius~)
+
+** Setup the Scirius instance to use
+Install Scirius to scirius-docker/scirius manually or use ~make setup-scirius~ to
+automatically build and setup Scirius up using [[github:jorgenbele/scirius-autosetup]].
+
+** Build the docker images
+#+BEGIN_SRC SHELL
+make build
+#+END_SRC
+
+** Start using docker-compose
+#+BEGIN_SRC SHELL
+docker-compose up
+#+END_SRC
