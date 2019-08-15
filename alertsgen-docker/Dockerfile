@@ -1,6 +1,6 @@
-FROM debian
+FROM python:3.7-buster
 
-RUN apt-get update && apt-get install -y python3-pip python3
+#RUN apt-get update && apt-get install -y python3-pip python3
 ADD files /app
 WORKDIR /app
 RUN pip3 install -r requirements.txt
