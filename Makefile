@@ -16,7 +16,7 @@ help:
 	@ echo "  sysctls            set sysctl settings (needed for elasticsearch)"
 
 setup-scirius:
-	(git clone git@github.com:jorgenbele/scirius-autosetup && pipenv --python 2 && pipenv run "$(MAKE) SCIRIUS_DIR='../scirius-docker/scirius' -C scirius-autosetup init")
+	(git clone git@github.com:jorgenbele/scirius-autosetup && pipenv --python 2 && pipenv run $(MAKE) SCIRIUS_GIT_BRANCH=develop SCIRIUS_DIR='../scirius-docker/scirius' -C scirius-autosetup init)
 
 build:
 	(cd scirius-docker && sh make_dockerfile.sh)
